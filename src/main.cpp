@@ -18,6 +18,8 @@
 namespace fs = std::filesystem;
 #include "editor.h"
 
+void exec_libtcc();
+
 sg_pass_action pass_action{};
 
 bool show_console_window = false;
@@ -105,6 +107,10 @@ struct ExampleAppConsole
         ImGui::SameLine();
         bool copy_to_clipboard = ImGui::SmallButton("Copy");
         //static float t = 0.0f; if (ImGui::GetTime() - t > 0.02f) { t = ImGui::GetTime(); AddLog("Spam %f", t); }
+
+        ImGui::SameLine();
+        if (ImGui::SmallButton("ReCompile & Run"))
+            exec_libtcc();
 
         ImGui::Separator();
 
@@ -359,6 +365,36 @@ void printf_console(const char* fmt, ...)
     printf(buf);
 }
 
+void exec_libtcc() {
+    auto zepBuffers = zep_get_editor().GetBuffers();
+    int bufferNum = zepBuffers.size();
+    if (bufferNum > 0)
+    {
+        auto activeZepBuffer = zep_get_editor().GetActiveBuffer();
+        std::string extension_name = activeZepBuffer->GetFileExtension();
+        if (extension_name == ".c")
+        {
+            std::string textNow = activeZepBuffer->GetBufferText(activeZepBuffer->Begin(), activeZepBuffer->End());
+
+            TCCState * s = tcc_new();
+            tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
+            tcc_set_error_func(s, 0, error_func);
+            // tcc_add_library_path(s, "./libtcc");
+            // tcc_add_include_path(s, ".");
+            // tcc_add_include_path(s, "include");
+            tcc_add_library(s, "opengl32");
+            tcc_add_symbol(s, "printf_console", printf_console);
+
+            if (tcc_compile_string(s, textNow.c_str()) == -1) {
+            } else {
+                tcc_run(s, NULL, NULL);
+            }
+            // tcc_relocate(s, TCC_RELOCATE_AUTO);
+            tcc_delete(s);
+        }
+    }
+}
+
 void init() {
     sg_desc desc = {};
     desc.context = sapp_sgcontext();
@@ -516,36 +552,9 @@ void frame() {
 
             if (ImGui::BeginMenu("Debug"))
             {
-                if (ImGui::MenuItem("Run", "Ctrl-R"))
+                if (ImGui::MenuItem("Compile & Run", "Ctrl-R"))
                 {
-                    auto zepBuffers = zep_get_editor().GetBuffers();
-                    int bufferNum = zepBuffers.size();
-                    if (bufferNum > 0)
-                    {
-                        auto& zepBuffer0 = zepBuffers[0];
-                        std::string extension_name = zepBuffer0->GetFileExtension();
-                        if (extension_name == ".c")
-                        {
-                            // std::string textNow = zepBuffers[0]->GetBufferText(zepBuffer0->Begin(), zepBuffer0->End());
-                            // vm->exec(textNow, zepBuffer0->GetFilePath().string(), pkpy::EXEC_MODE);
-                            std::string textNow = zepBuffers[0]->GetBufferText(zepBuffer0->Begin(), zepBuffer0->End());
-
-                            TCCState * s = tcc_new();
-                            tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
-                            tcc_set_error_func(s, 0, error_func);
-                            // tcc_add_library_path(s, "./libtcc");
-                            // tcc_add_include_path(s, ".");
-                            // tcc_add_include_path(s, "include");
-                            tcc_add_symbol(s, "printf_console", printf_console);
-
-                            if (tcc_compile_string(s, textNow.c_str()) == -1) {
-
-                            } else {
-                                tcc_run(s, NULL, NULL);
-                            }
-                            tcc_delete(s);
-                        }
-                    }
+                    exec_libtcc();
                 }
                 ImGui::MenuItem("Show Console", NULL, &show_console_window);
                 ImGui::EndMenu();

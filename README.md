@@ -1,8 +1,8 @@
 # Mini c IDE
 
-![mini c ide](screenshots/Snipaste_2023-07-22_21-50-45.png)
+![mini c ide](screenshots/Snipaste_2025-09-26_18-10-50.png)
 
 A c ide based on libtcc &amp; imgui.
 
-Based on my [MiniPythonIDE](https://github.com/CU-Production/MiniPythonIDE/).
+Alse based on my [MiniPythonIDE](https://github.com/CU-Production/MiniPythonIDE/).
 
