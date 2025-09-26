@@ -4,5 +4,5 @@
 
 A c ide based on libtcc &amp; imgui.
 
-Alse based on my [MiniPythonIDE](https://github.com/CU-Production/MiniPythonIDE/).
+Also based on my [MiniPythonIDE](https://github.com/CU-Production/MiniPythonIDE/).
 
